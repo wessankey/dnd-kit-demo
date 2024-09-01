@@ -5,27 +5,38 @@ import {
   useDroppable,
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable, arrayMove } from "@dnd-kit/sortable";
 
 import "./App.css";
+import { useState } from "react";
 
 function App() {
   const { setNodeRef } = useDroppable({ id: "unique-id" });
+  const [items, setItems] = useState([1, 2, 3, 4]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over || active.id === over.id) return;
-  };
+    if (over && active.id !== over.id) {
+      setItems((items) => {
+        const oldIndex = items.indexOf(active.id);
+        const newIndex = items.indexOf(over.id);
 
-  const items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
 
   return (
     <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={items}>
         <div
           ref={setNodeRef}
-          style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+          }}
         >
           {items.map((index) => {
             return <Card key={index} index={index} />;
@@ -37,21 +48,14 @@ function App() {
 }
 
 function Card({ index }: { index: number }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: index,
-  });
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({
+      id: index,
+    });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 1 : "auto",
   };
 
   return (
